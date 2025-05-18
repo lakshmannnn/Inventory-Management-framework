@@ -12,7 +12,7 @@
   "author": "lakshman",
   "license": "ISC",
   "devDependencies": {
-    "cypress": "^14.0.0"
+    "cypress": "^14.3.3"
   },
   "dependencies": {
     "npx": "^10.2.2"

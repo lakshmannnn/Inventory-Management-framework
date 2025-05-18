@@ -23,7 +23,8 @@
 Cypress.Commands.add('addProduct', (authToken, prodName, prodPrice, prodType, prodQuantity) => {
     cy.request({
         method: 'POST',
-        url: `https://apiforshopsinventorymanagementsystem.onrender.com/products`,
+        url: ("/"+"/products"),
+
         headers: { Authorization: `Bearer ${authToken}` },
         body: {
             name: prodName,
@@ -45,7 +46,13 @@ Cypress.Commands.add('buyProduct', (authToken, orderType, productId, prodQuantit
             quantity: prodQuantity
         }
     })
-})
+});
+
+
+Cypress.Commands.add("setGlobalVar", key => {
+  Cypress.env(key);
+});
+
 
 
 // -- This will overwrite an existing command --

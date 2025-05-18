@@ -6,7 +6,7 @@ module.exports = defineConfig({
       // implement node event listeners here
     },
     specPattern: "cypress/e2e/**/*.{js,jsx,ts,tsx,feature}",
-    baseUrl: "https://apiforshopsinventorymanagementsystem-qnkc.onrender.com/status",
+    baseUrl: "https://apiforshopsinventorymanagementsystem-qnkc.onrender.com",
     env: {
       username: "user01",
       password: "secpassword*",
