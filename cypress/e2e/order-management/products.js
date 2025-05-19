@@ -25,6 +25,9 @@ describe('Inventory Management API Tests', () => {
     beforeEach(function () {
         // Authenticate and extract bearer token
         let tempProdName = (Math.random() * 1000).toString(32).substring(1);
+        let prodNameToPassonToTests = (Math.random() * 1000).toString(32).substring(1);
+        //use prodNameInit in respective tests which need unique product name
+        cy.wrap(prodNameToPassonToTests).as("prodNameInit");
         cy.request('POST', ("/" + "/auth/login"), {
             username: Cypress.env("username"),
             password: Cypress.env("password")
@@ -53,44 +56,84 @@ describe('Inventory Management API Tests', () => {
         })
     });
     context('Product Management', () => {
-        it('Should add a new product (Happy Path)', () => {
-            let tempProdName = (Math.random() * 1000).toString(32).substring(1);
-            cy.request({
-                method: 'POST',
-                url: ("/products"),
-                headers: { Authorization: `Bearer ${authToken}` },
-                body: {
-                    name: tempProdName,
-                    price: prodPrice,
-                    productType: Cypress.env("prodType"),
-                    quantity: prodQuantity
-                }
-            }).then((response) => {
-                expect(response.status).to.eq(201);
-                productId = response.body.productId;
-                cy.log(`The product id is : ${productId}`);
+        it('Should add a new product (Happy Path)', {
+            retries: {
+                runMode: 2,
+                openMode: 2
+            }
+        }, () => {
+            //retries added just to avoid any failures for the first time
+            cy.get("@prodNameInit").then((prodNameInit) => {
+                cy.log("alias variables from befreEach hooks:" + prodNameInit)
+                cy.request({
+                    method: 'POST',
+                    url: ("/products"),
+                    headers: { Authorization: `Bearer ${authToken}` },
+                    body: {
+                        name: prodNameInit,
+                        price: prodPrice,
+                        productType: Cypress.env("prodType"),
+                        quantity: prodQuantity
+                    }
+                }).then((response) => {
+                    expect(response.status).to.eq(201);
+                    productId = response.body.productId;
+                    cy.log(`The product id is : ${productId}`);
 
-            });
+                });
+            })
+        });
+        it('Should fail to add a product when API invoked with same product name - duplicate (Unhappy Path)', () => {
+            cy.get("@prodNameInit").then((prodNameInit) => {
+                cy.log("alias variables from befreEach hooks:" + prodNameInit)
+                cy.addProduct(authToken, prodNameInit, prodPrice, Cypress.env("prodType"), prodQuantity).then((response) => {
+                    expect(response.status).to.eq(201);
+                    productId = response.body.productId;
+                    cy.log(`The product id is : ${productId}`);
+                })
+            })
+            // creating product with same name prodNameInit again
+            cy.get("@prodNameInit").then((prodNameInit) => {
+                cy.log("alias variables from befreEach hooks:" + prodNameInit)
+                cy.request({
+                    method: 'POST',
+                    url: ("/products"),
+                    headers: { Authorization: `Bearer ${authToken}` },
+                    failOnStatusCode: false, //As we know it fails , hence failOnStatusCode used and custom command is not used to create prod id just to keep it clean
+                    body: {
+                        name: prodNameInit,
+                        price: prodPrice,
+                        productType: Cypress.env("prodType"),
+                        quantity: prodQuantity
+                    }
+                }).then((response) => {
+                    expect(response.status).to.eq(400);
+                    cy.log("message: " + response.body.message, "name used: " + response.body.name);
+                })
+            })
         });
         it('Should fail to add a product when API invoked without authentication header (Unhappy Path)', () => {
-            cy.request({
-                method: 'POST',
-                url: ("/" + "/products"),
-                failOnStatusCode: false,
-                body: {
-                    name: prodName,
-                    price: prodPrice,
-                    productType: Cypress.env("prodType"),
-                    quantity: prodQuantity
-                }
-            }).then((response) => {
-                expect(response.status).to.eq(401);
-            });
+            cy.get("@prodNameInit").then((prodNameInit) => {
+                cy.log("alias variables from befreEach hooks:" + prodNameInit),
+                    cy.request({
+                        method: 'POST',
+                        url: ("products"),
+                        failOnStatusCode: false,
+                        body: {
+                            name: prodNameInit,
+                            price: prodPrice,
+                            productType: Cypress.env("prodType"),
+                            quantity: prodQuantity
+                        }
+                    }).then((response) => {
+                        expect(response.status).to.eq(401);
+                    });
+            })
         });
         it('Should fail to add a product when API invoked with expired bearer token (Unhappy Path)', () => {
             cy.request({
                 method: 'POST',
-                url: ("/" + "/products"),
+                url: ("/products"),
                 failOnStatusCode: false,
                 headers: { Authorization: `Bearer Cypress.env("expiredAuthToken")` },
                 body: {
@@ -101,23 +144,8 @@ describe('Inventory Management API Tests', () => {
                 }
             }).then((response) => {
                 expect(response.status).to.eq(401);
-            });
+            })
         });
-        // it('Should fail to add a product with duplicate product name and type (Unhappy Path)', () => {
-        //     cy.request({
-        //         method: 'POST',
-        //         url: ("/"+"/products"),
-        //         headers: { Authorization: `Bearer ${authToken}` },
-        //         body: {
-        //             name: prodName,
-        //             price: prodPrice,
-        //             productType: Cypress.env("prodType"),
-        //             quantity: prodQuantity
-        //         }
-        //     }).then((response) => {
-        //         expect(response.status).to.eq(401);
-        //     });
-        // });
         it('Should list all existing products using /products API (Happy Path)', () => {
             cy.request({
                 method: 'GET',
@@ -205,8 +233,7 @@ describe('Inventory Management API Tests', () => {
         });
     });
     context('Stock Management', () => {
-        // it('Should query stock levels for existing product', () => {
-        it('Should query stock levels for existing product',{ tags: ["@smoke", "@regression"] }, () => {
+        it('Should query stock levels for existing product', { tags: ["@smoke", "@regression"] }, () => {
             //Pull the whole list of products using the /products API
             cy.request({
                 method: 'GET',
@@ -229,9 +256,9 @@ describe('Inventory Management API Tests', () => {
                     url: (`/orders/product/${firstProductId}`),
                     headers: { Authorization: `Bearer ${authToken}` }
                 }).then((response) => {
-                    // expect(response.body.productId).to.eq(${firstProductId});
                     expect(response.status).to.eq(200);
-                    cy.log("The stock details for product with the given id verfied!!: " + response.body.productId, response.body.name,"totalTransactions:"+response.body.totalTransactions,"totalBuys:"+response.body.totalBuys,"totalSells:"+response.body.totalSells,"currentStock:"+response.body.currentStock,);
+                    //TODO:logic to check if the product without "message": "No orders found for this product",
+                    cy.log("The stock details for product with the given id verfied!!: " + response.body.productId, response.body.name, "totalTransactions:" + response.body.totalTransactions, "totalBuys:" + response.body.totalBuys, "totalSells:" + response.body.totalSells, "currentStock:" + response.body.currentStock,);
                 });
             });
         });

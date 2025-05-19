@@ -14,7 +14,8 @@ module.exports = defineConfig({
       expiredAuthToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTJiY2NlZDVkZGIzYjkyYmY5MTYxMSIsImlhdCI6MTc0NzUwMTg1MCwiZXhwIjoxNzQ3NTA1NDUwfQ.zi5e4BkW7LTTr6MQU4-6kvDwe9hm9gnnp5aHxYPGj7k",
       prodIdWithStockZero: "efb8aba9-f83d-4f76-b5ba-79f124786d14",
       invalidProdId: "invalid-random-number",
-      orderType:'buy'
+      orderType:'buy',
+      failOnStatus: true
     }
   },
 });
