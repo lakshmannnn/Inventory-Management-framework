@@ -19,12 +19,10 @@
 //
 // -- This is a dual command --
 // Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
 Cypress.Commands.add('addProduct', (authToken, prodName, prodPrice, prodType, prodQuantity) => {
     cy.request({
         method: 'POST',
-        url: ("/"+"/products"),
-
+        url: ("/products"),
         headers: { Authorization: `Bearer ${authToken}` },
         body: {
             name: prodName,
@@ -34,11 +32,10 @@ Cypress.Commands.add('addProduct', (authToken, prodName, prodPrice, prodType, pr
         }
     })
 })
-
 Cypress.Commands.add('buyProduct', (authToken, orderType, productId, prodQuantity) => {
     cy.request({
         method: 'POST',
-        url: `https://apiforshopsinventorymanagementsystem.onrender.com/orders`,
+        url: `/orders`,
         headers: { Authorization: `Bearer ${authToken}` },
         body: {
             orderType: orderType,

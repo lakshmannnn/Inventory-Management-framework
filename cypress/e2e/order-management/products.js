@@ -8,7 +8,7 @@ describe('Inventory Management API Tests', () => {
     let prodQuantity = Math.floor(Math.random() * 100) + 1;
     before(function () {
         //Initialize and load required fixtures test data for static product ids.
-        // OR use the dynamic product ids created at the end of this 'Before' hook block.
+        // OR use the dynamic product ids created in 'beforeEach' hook block.
         cy.fixture("productids.json").then(function (data) {
             globalThis.data = data;
         });
@@ -21,7 +21,10 @@ describe('Inventory Management API Tests', () => {
             expect(response.status).to.eq(200);
             cy.log("Server up and running!!");
         });
+    });
+    beforeEach(function () {
         // Authenticate and extract bearer token
+        let tempProdName = (Math.random() * 1000).toString(32).substring(1);
         cy.request('POST', ("/" + "/auth/login"), {
             username: Cypress.env("username"),
             password: Cypress.env("password")
@@ -35,7 +38,7 @@ describe('Inventory Management API Tests', () => {
                 url: ("/" + "/products"),
                 headers: { Authorization: `Bearer ${authToken}` },
                 body: {
-                    name: prodName,
+                    name: tempProdName,
                     price: prodPrice,
                     productType: Cypress.env("prodType"),
                     quantity: prodQuantity
@@ -148,7 +151,7 @@ describe('Inventory Management API Tests', () => {
             })
         });
         it('Should update product detils of a newly created product', () => {
-            // Used dynamic product id generated from Before hook as opposed to fixtures test data and continue to do so.
+            // Used dynamic product id generated from beforeEach hook as opposed to fixtures test data and continue to do so.
             cy.get("@prodIdInit").then((tempProdId) => {
                 cy.log(tempProdId),
                     cy.request({
@@ -166,7 +169,7 @@ describe('Inventory Management API Tests', () => {
         it('Should delete a newly created product (custom command)', () => {
             //First create a product using CUSTOM COMMANDS and then retrive the prod id only to be deleted later
             //The reason to use product ids gererated by below methods is just to demonstrate all possible ways.
-            // a).dynamic data from Before hook,b).fixtures and c).custom commands
+            // a).dynamic data from beforeEach hook,b).fixtures and c).custom commands
             let prodNameTobeDeleted = (Math.random() * 1000).toString(32).substring(1);
             cy.addProduct(authToken, prodNameTobeDeleted, prodPrice, Cypress.env("prodType"), prodQuantity).then((response) => {
                 expect(response.status).to.eq(201);
@@ -183,7 +186,7 @@ describe('Inventory Management API Tests', () => {
                 });
             });
         });
-        it('Should delete a product (with the product id created by prod id from Before hook)', () => {
+        it('Should delete a product (with the product id created by prod id from beforeEach hook)', () => {
             let prodNameTobeDeleted = (Math.random() * 1000).toString(32).substring(1);
             cy.addProduct(authToken, prodNameTobeDeleted, prodPrice, Cypress.env("prodType"), prodQuantity).then((response) => {
                 expect(response.status).to.eq(201);
@@ -227,7 +230,7 @@ describe('Inventory Management API Tests', () => {
                 }).then((response) => {
                     // expect(response.body.productId).to.eq(${firstProductId});
                     expect(response.status).to.eq(200);
-                    cy.log("The stock details for product with the given id verfied!!: " + response.body.productId, response.body.name);
+                    cy.log("The stock details for product with the given id verfied!!: " + response.body.productId, response.body.name,"totalTransactions:"+response.body.totalTransactions,"totalBuys:"+response.body.totalBuys,"totalSells:"+response.body.totalSells,"currentStock:"+response.body.currentStock,);
                 });
             });
         });
@@ -266,7 +269,7 @@ describe('Inventory Management API Tests', () => {
                 body: { "orderType": "buy", "productId": globalThis.data.productIds[1], "quantity": 2 }
             }).then((response) => {
                 expect(response.status).to.eq(201);
-                cy.log("Successfully bought a prod and the result is: "+ response.body.success);
+                cy.log("Successfully bought a prod and the result is: " + response.body.success);
                 //check if the previousStock and newStock updated
                 // TODO: NOT testing the logic as there is a defect in the API , where the stock updates are not working correctly
                 //  ex: there was no change when I bought 2 prods : "previousStock": 10000000000000016, "newStock": 10000000000000016,
@@ -281,7 +284,7 @@ describe('Inventory Management API Tests', () => {
                 body: { "orderType": "buy", "productId": globalThis.data.productIds[3], "quantity": -prodQuantity }
             }).then((response) => {
                 expect(response.status).to.eq(400);
-                cy.log("Can not buy as negative quantity provided:: check the response message: "+ response.body.message,response.body.received);
+                cy.log("Can not buy as negative quantity provided:: check the response message: " + response.body.message, response.body.received);
                 // TODO: There is a defect that it accepts decimal quantity while buying[and probably selling too]
             });
         });
@@ -294,7 +297,7 @@ describe('Inventory Management API Tests', () => {
                 body: { "orderType": "buy", "productId": globalThis.data.productIds[3], "quantity": 0 }
             }).then((response) => {
                 expect(response.status).to.eq(400);
-                cy.log("Can not buy as ZERO quantity provided: check the response message: "+ response.body.message,response.body.received);
+                cy.log("Can not buy as ZERO quantity provided: check the response message: " + response.body.message, response.body.received);
             });
         });
         it('Should fail to buy a product with invalid Product id (Unhappy Path)', () => {
@@ -306,7 +309,7 @@ describe('Inventory Management API Tests', () => {
                 body: { "orderType": "buy", "productId": Cypress.env("invalidProdId"), "quantity": 2 }
             }).then((response) => {
                 expect(response.status).to.eq(404);
-                cy.log("Can not buy as non existent prod id provided: check the response message: "+ response.body.message);
+                cy.log("Can not buy as non existent prod id provided: check the response message: " + response.body.message);
             });
         });
         it('Should sell a product', () => {
@@ -317,8 +320,8 @@ describe('Inventory Management API Tests', () => {
                 body: { "orderType": "sell", "productId": globalThis.data.productIds[0], "quantity": prodQuantity } //TODO:It works only for greater than 1
             }).then((response) => {
                 expect(response.status).to.eq(201);
-                cy.log("Sold successfully and response message: "+ response.body.success);
-                 // TODO:Add logic to check if the previousStock newStock updated by verifying the difference
+                cy.log("Sold successfully and response message: " + response.body.success);
+                // TODO:Add logic to check if the previousStock newStock updated by verifying the difference
             });
         });
         it('Should fail to sell a product with max number of stocks(ex:999999) (Unhappy Path)', () => {
@@ -330,7 +333,7 @@ describe('Inventory Management API Tests', () => {
                 body: { "orderType": "sell", "productId": globalThis.data.productIds[7], "quantity": 999999 }
             }).then((response) => {
                 expect(response.status).to.eq(400);
-                cy.log("Can not sell as requested stock exists check the response message: "+ response.body.message);
+                cy.log("Can not sell as requested stock exists check the response message: " + response.body.message);
             });
         });
         it('Should fail to sell when the stock set to ZERO - prodIdWithStockZero (Unhappy Path)', () => {
@@ -342,7 +345,7 @@ describe('Inventory Management API Tests', () => {
                 body: { "orderType": "sell", "productId": Cypress.env("prodIdWithStockZero"), "quantity": 100000 }
             }).then((response) => {
                 expect(response.status).to.eq(400);
-                cy.log("The product do not exists as stock is set to ZERO,the response message: "+ response.body.message);
+                cy.log("The product do not exists as stock is set to ZERO,the response message: " + response.body.message);
             });
         });
         it('Should fail to sell when the API invoked with ZERO quantity (Unhappy Path)', () => {
@@ -354,7 +357,7 @@ describe('Inventory Management API Tests', () => {
                 body: { "orderType": "sell", "productId": globalThis.data.productIds[3], "quantity": 0 }
             }).then((response) => {
                 expect(response.status).to.eq(400);
-                cy.log("Can not sell as the API invoked with ZERO quantity , response message: "+ response.body.message);
+                cy.log("Can not sell as the API invoked with ZERO quantity , response message: " + response.body.message);
             });
         });
         it('Should fail to sell when the API invoked with invalid product id (Unhappy Path)', () => {
@@ -366,7 +369,7 @@ describe('Inventory Management API Tests', () => {
                 body: { "orderType": "sell", "productId": Cypress.env("invalidProdId"), "quantity": 3 }
             }).then((response) => {
                 expect(response.status).to.eq(404);
-                cy.log("Can not sell as API invoked with invalid product id , response message: "+ response.body.message);
+                cy.log("Can not sell as API invoked with invalid product id , response message: " + response.body.message);
             });
         });
     });
