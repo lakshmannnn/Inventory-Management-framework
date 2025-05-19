@@ -26,8 +26,6 @@ describe('Inventory Management API Tests', () => {
         // Authenticate and extract bearer token
         let tempProdName = (Math.random() * 1000).toString(32).substring(1);
         let prodNameToPassonToTests = (Math.random() * 1000).toString(32).substring(1);
-        //use prodNameInit in respective tests which need unique product name
-        cy.wrap(prodNameToPassonToTests).as("prodNameInit");
         cy.request('POST', ("/auth/login"), {
             username: Cypress.env("username"),
             password: Cypress.env("password")
@@ -52,6 +50,8 @@ describe('Inventory Management API Tests', () => {
                 let body = JSON.parse(JSON.stringify(response.body));
                 //Use the below alias product id in respective test specs that need product id.
                 cy.wrap(body.productId).as("prodIdInit");
+                //use prodNameToPassonToTests in respective tests which need unique product name
+        cy.wrap(prodNameToPassonToTests).as("prodNameInit");
             })
         })
     });
@@ -255,6 +255,7 @@ describe('Inventory Management API Tests', () => {
     });
     context('Stock Management', () => {
         it('Should query stock levels for existing product', { tags: ["@smoke", "@regression"] }, () => {
+            // This test can be triggered based on tags using grep command
             //Pull the whole list of products using the /products API
             cy.request({
                 method: 'GET',
@@ -307,7 +308,7 @@ describe('Inventory Management API Tests', () => {
             });
         });
         it('Should buy a product ', () => {
-            //Can be enhanced to use dynamic data as shown above, not touching now:)
+            //Can be enhanced to use dynamic data as shown above, not touching now due to time constraint:)
             // DEFECT Note: To buy or sell a product, it should have history of previous orders placed/linked. Otherwise the API resonds with 400
             // OR you would receive   "message": "No orders found for this product" - Strange behaviour , to me it is a defect.
             cy.buyProduct(authToken, Cypress.env("orderTypeBuy"), globalThis.data.productIds[1], 2).then((response) => {
@@ -380,7 +381,7 @@ describe('Inventory Management API Tests', () => {
                 cy.log("Can not buy as non existent prod id provided: check the response message: " + response.body.message);
             });
         });
-        it('Should sell a product', () => {
+        it('Should sell a product [sell order]', () => {
             cy.request({
                 method: 'POST',
                 url: ("/orders"),
