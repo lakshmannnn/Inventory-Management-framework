@@ -32,11 +32,25 @@ Cypress.Commands.add('addProduct', (authToken, prodName, prodPrice, prodType, pr
         }
     })
 })
-Cypress.Commands.add('buyProduct', (authToken, orderType, productId, prodQuantity) => {
+Cypress.Commands.add('buyOrderwithNofailOnStatusCode', (authToken, orderType, productId, prodQuantity) => {
     cy.request({
         method: 'POST',
         url: `/orders`,
         headers: { Authorization: `Bearer ${authToken}` },
+        body: {
+            orderType: orderType,
+            productId: productId,
+            quantity: prodQuantity
+        }
+    })
+});
+Cypress.Commands.add('buyOrder', (authToken, orderType, productId, prodQuantity) => {
+    const failOnStatusCode = Cypress.env("failOnStatusCode");
+    cy.request({
+        method: 'POST',
+        url: `/orders`,
+        headers: { Authorization: `Bearer ${authToken}` },
+        failOnStatusCode: failOnStatusCode,
         body: {
             orderType: orderType,
             productId: productId,
@@ -61,8 +75,6 @@ Cypress.Commands.add('sellOrder', (authToken, orderType, productId, prodQuantity
 Cypress.Commands.add("setGlobalVar", key => {
     Cypress.env(key);
 });
-
-
 
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... }))

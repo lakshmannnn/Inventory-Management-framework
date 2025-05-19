@@ -51,7 +51,7 @@ describe('Inventory Management API Tests', () => {
                 //Use the below alias product id in respective test specs that need product id.
                 cy.wrap(body.productId).as("prodIdInit");
                 //use prodNameToPassonToTests in respective tests which need unique product name
-        cy.wrap(prodNameToPassonToTests).as("prodNameInit");
+                cy.wrap(prodNameToPassonToTests).as("prodNameInit");
             })
         })
     });
@@ -293,7 +293,7 @@ describe('Inventory Management API Tests', () => {
                 //Find the productId of the same product from the JSON response
                 let prodId = body.productId;
                 const orderType = Cypress.env("orderTypeBuy");
-                cy.buyProduct(authToken, orderType, prodId, prodQuantity).then((response) => {
+                cy.buyOrderwithNofailOnStatusCode(authToken, orderType, prodId, prodQuantity).then((response) => {
                     let prodId = response.body.productId;
                     // let orderId = response.body.orderId;
                     cy.request({
@@ -307,11 +307,11 @@ describe('Inventory Management API Tests', () => {
                 });
             });
         });
-        it('Should buy a product ', () => {
+        it('Should buy a product [buy order] ', () => {
             //Can be enhanced to use dynamic data as shown above, not touching now due to time constraint:)
             // DEFECT Note: To buy or sell a product, it should have history of previous orders placed/linked. Otherwise the API resonds with 400
             // OR you would receive   "message": "No orders found for this product" - Strange behaviour , to me it is a defect.
-            cy.buyProduct(authToken, Cypress.env("orderTypeBuy"), globalThis.data.productIds[1], 2).then((response) => {
+            cy.buyOrderwithNofailOnStatusCode(authToken, Cypress.env("orderTypeBuy"), globalThis.data.productIds[1], 2).then((response) => {
                 expect(response.status).to.eq(201);
                 cy.log("Successfully bought a prod and the result is: " + response.body.success);
                 cy.log("Successfully bought a prod and the result is: " + response.body.success);
