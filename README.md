@@ -1,4 +1,4 @@
-Inventory Management Framework Overview
+Inventory Management Framework Overview\n
 The Inventory Management Framework is designed to streamline inventory tracking, product management, and stock control. This framework provides essential functionalities for managing inventory efficiently.
 Features
 •	🔐 Authentication & Authorization – Secure access control for different user roles.
