@@ -44,8 +44,22 @@ Cypress.Commands.add('buyProduct', (authToken, orderType, productId, prodQuantit
         }
     })
 });
+Cypress.Commands.add('sellOrder', (authToken, orderType, productId, prodQuantity) => {
+    const failOnStatusCode = Cypress.env("failOnStatusCode");
+    cy.request({
+        method: 'POST',
+        url: `/orders`,
+        headers: { Authorization: `Bearer ${authToken}` },
+        failOnStatusCode: failOnStatusCode,
+        body: {
+            orderType: orderType,
+            productId: productId,
+            quantity: prodQuantity
+        }
+    })
+});
 Cypress.Commands.add("setGlobalVar", key => {
-  Cypress.env(key);
+    Cypress.env(key);
 });
 
 

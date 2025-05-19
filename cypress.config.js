@@ -16,7 +16,10 @@ module.exports = defineConfig({
       invalidProdId: "invalid-random-number",
       orderTypeBuy:'buy',
       orderTypeSell:'sell',
-      failOnStatus: true
+      failOnStatusCode: false,
+      maxNumberOfStock: 999999,
+      nonZeroPosNum: 3,
+      decimalValue: 1.9
     }
   },
 });

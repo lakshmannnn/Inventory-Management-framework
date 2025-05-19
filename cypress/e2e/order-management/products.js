@@ -86,11 +86,11 @@ describe('Inventory Management API Tests', () => {
             // First create a product prodNameInit
             cy.get("@prodNameInit").then((prodNameInit) => {
                 cy.log("alias variables from befreEach hooks:" + prodNameInit),
-                cy.addProduct(authToken, prodNameInit, prodPrice, Cypress.env("prodType"), prodQuantity).then((response) => {
-                    expect(response.status).to.eq(201);
-                    productId = response.body.productId;
-                    cy.log(`The product id is : ${productId}`);
-                })
+                    cy.addProduct(authToken, prodNameInit, prodPrice, Cypress.env("prodType"), prodQuantity).then((response) => {
+                        expect(response.status).to.eq(201);
+                        productId = response.body.productId;
+                        cy.log(`The product id is : ${productId}`);
+                    })
             })
             // creating product with same name prodNameInit once again
             cy.get("@prodNameInit").then((prodNameInit) => {
@@ -308,18 +308,14 @@ describe('Inventory Management API Tests', () => {
         });
         it('Should buy a product ', () => {
             //Can be enhanced to use dynamic data as shown above, not touching now:)
-            // Note to buy or sell a product , it should have history of previous orders
+            // DEFECT Note: To buy or sell a product, it should have history of previous orders placed/linked. Otherwise the API resonds with 400
             // OR you would receive   "message": "No orders found for this product" - Strange behaviour , to me it is a defect.
-            cy.request({
-                method: 'POST',
-                url: ("/orders"),
-                headers: { Authorization: `Bearer ${authToken}` },
-                body: { "orderType": Cypress.env("orderTypeBuy"), "productId": globalThis.data.productIds[1], "quantity": 2 }
-            }).then((response) => {
+            cy.buyProduct(authToken, Cypress.env("orderTypeBuy"), globalThis.data.productIds[1], 2).then((response) => {
                 expect(response.status).to.eq(201);
                 cy.log("Successfully bought a prod and the result is: " + response.body.success);
+                cy.log("Successfully bought a prod and the result is: " + response.body.success);
                 //check if the previousStock and newStock updated
-                // TODO: NOT testing the logic as there is a defect in the API , where the stock updates are not working correctly
+                // TODO: DEFECT - NOT testing the logic as there is a defect in the API , where the stock updates are not working correctly
                 //  ex: there was no change when I bought 2 prods : "previousStock": 10000000000000016, "newStock": 10000000000000016,
             });
         });
@@ -335,7 +331,7 @@ describe('Inventory Management API Tests', () => {
                 cy.log("Can not buy as negative quantity provided:: check the response message: " + response.body.message, response.body.received);
             });
         });
-            it.only('Should fail to buy a product with incorrect schema value(orderType) (Unhappy Path)', () => {
+        it('Should fail to buy a product with incorrect schema value(orderType) (Unhappy Path)', () => {
             cy.request({
                 method: 'POST',
                 url: ("/orders"),
@@ -384,7 +380,7 @@ describe('Inventory Management API Tests', () => {
                 cy.log("Can not buy as non existent prod id provided: check the response message: " + response.body.message);
             });
         });
-        it.only('Should sell a product', () => {
+        it('Should sell a product', () => {
             cy.request({
                 method: 'POST',
                 url: ("/orders"),
@@ -397,61 +393,32 @@ describe('Inventory Management API Tests', () => {
             });
         });
         it('Should fail to sell a product with max number of stocks(ex:999999) (Unhappy Path)', () => {
-            cy.request({
-                method: 'POST',
-                url: ("/orders"),
-                headers: { Authorization: `Bearer ${authToken}` },
-                failOnStatusCode: false,
-                body: { "orderType": Cypress.env("orderTypeSell"), "productId": globalThis.data.productIds[7], "quantity": 999999 }
-            }).then((response) => {
+            cy.sellOrder(authToken, Cypress.env("orderTypeSell"), globalThis.data.productIds[7], Cypress.env("maxNumberOfStock")).then((response) => {
                 expect(response.status).to.eq(400);
-                cy.log("Can not sell as requested stock exists check the response message: " + response.body.message);
-            });
+                cy.log("Can not sell as requested stock does not exist, check the response message: " + response.body.message);
+            })
         });
-            it('DEFECT:Should fail to sell a product with DECIMAL number of stocks(ex:1.9) (Unhappy Path)', () => {
-            cy.request({
-                method: 'POST',
-                url: ("/orders"),
-                headers: { Authorization: `Bearer ${authToken}` },
-                failOnStatusCode: false,
-                body: { "orderType": Cypress.env("orderTypeSell"), "productId": globalThis.data.productIds[7], "quantity": 1.9 }
-            }).then((response) => {
+        it('DEFECT:Should fail to sell a product with DECIMAL number of stocks(ex:1.9) (Unhappy Path)', () => {
+            cy.sellOrder(authToken, Cypress.env("orderTypeSell"), globalThis.data.productIds[7], Cypress.env("decimalValue")).then((response) => {
                 expect(response.status).to.eq(400);
-                cy.log("Can not sell as requested stock exists check the response message: " + response.body.message);
-            });
+                cy.log("Can not sell as the quantity is DECIMAL value, check the response message: " + response.body.message);
+            })
         });
         it('Should fail to sell when the stock set to ZERO - prodIdWithStockZero (Unhappy Path)', () => {
-            cy.request({
-                method: 'POST',
-                url: ("/orders"),
-                headers: { Authorization: `Bearer ${authToken}` },
-                failOnStatusCode: false,
-                body: { "orderType": Cypress.env("orderTypeSell"), "productId": Cypress.env("prodIdWithStockZero"), "quantity": 100000 }
-            }).then((response) => {
+            cy.sellOrder(authToken, Cypress.env("orderTypeSell"), globalThis.data.productIds[7], Cypress.env("nonZeroPosNum")).then((response) => {
                 expect(response.status).to.eq(400);
                 cy.log("The product do not exists as stock is set to ZERO,the response message: " + response.body.message);
             });
         });
         it('Should fail to sell when the API invoked with ZERO quantity (Unhappy Path)', () => {
-            cy.request({
-                method: 'POST',
-                url: ("/orders"),
-                headers: { Authorization: `Bearer ${authToken}` },
-                failOnStatusCode: false,
-                body: { "orderType": Cypress.env("orderTypeSell"), "productId": globalThis.data.productIds[3], "quantity": 0 }
-            }).then((response) => {
+            cy.sellOrder(authToken, Cypress.env("orderTypeSell"), globalThis.data.productIds[3], 0).then((response) => {
                 expect(response.status).to.eq(400);
                 cy.log("Can not sell as the API invoked with ZERO quantity , response message: " + response.body.message);
             });
         });
         it('Should fail to sell when the API invoked with invalid product id (Unhappy Path)', () => {
-            cy.request({
-                method: 'POST',
-                url: ("/orders"),
-                headers: { Authorization: `Bearer ${authToken}` },
-                failOnStatusCode: false,
-                body: { "orderType": Cypress.env("orderTypeSell"), "productId": Cypress.env("invalidProdId"), "quantity": 3 }
-            }).then((response) => {
+            cy.sellOrder(authToken, Cypress.env("orderTypeSell"), Cypress.env("invalidProdId"), Cypress.env("nonZeroPosNum")).then((response) => {
+                cy.log(response.body.message)
                 expect(response.status).to.eq(404);
                 cy.log("Can not sell as API invoked with invalid product id , response message: " + response.body.message);
             });
