@@ -205,7 +205,8 @@ describe('Inventory Management API Tests', () => {
         });
     });
     context('Stock Management', () => {
-        it('Should query stock levels for existing product', () => {
+        // it('Should query stock levels for existing product', () => {
+        it('Should query stock levels for existing product',{ tags: ["@smoke", "@regression"] }, () => {
             //Pull the whole list of products using the /products API
             cy.request({
                 method: 'GET',

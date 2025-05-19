@@ -12,6 +12,7 @@
   "author": "lakshman",
   "license": "ISC",
   "devDependencies": {
+    "@cypress/grep": "^4.1.0",
     "cypress": "^14.3.3"
   },
   "dependencies": {

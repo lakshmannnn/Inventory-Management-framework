@@ -44,8 +44,6 @@ Cypress.Commands.add('buyProduct', (authToken, orderType, productId, prodQuantit
         }
     })
 });
-
-
 Cypress.Commands.add("setGlobalVar", key => {
   Cypress.env(key);
 });
