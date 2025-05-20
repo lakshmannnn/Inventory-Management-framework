@@ -1,30 +1,26 @@
 describe('Inventory Management API Tests', () => {
-    var productId;
-    var firstProductId;
     var prodIdList = new Array();
-    let prodName = (Math.random() * 1000).toString(32).substring(1);//These variables can also be defined as env variables
-    let prodPrice = Math.floor(Math.random() * 1000) + 1;
-    let prodQuantity = Math.floor(Math.random() * 100) + 1;
+    let prodName, prodPrice, prodQuantity, firstProductId, prodNameToPassonToTests, productId;
     before(function () {
         //Initialize and load required fixtures test data for static product ids.
         // OR use the dynamic product ids created in 'beforeEach' hook block.
         cy.fixture("productids.json").then(function (data) {
             globalThis.data = data;
         });
-        // Check if the Server up and running
+        // Check if the Server up and running!!
         cy.request({
             method: 'GET',
             url: ("/status"),
         }).then((response) => {
-            expect(response.status).to.eq(200);
-            cy.log("Server up and running!!");
+            if (response.status !== 200) {
+                cy.wait(60000); // Wait for 60 seconds and Retry request as first time it might take 60 seconds
+                cy.request("/status").then((response) => {
+                    expect(response.status).to.eq(200);
+                    cy.log("Server up and running!!");
+                });
+            }
         });
-    });
-    beforeEach(function () {
-        // Authenticate and extract bearer token. Ideally this step can be moved to Before hook.
-        // I have to use under beforeEach for test data isolation- so that I can create a new product id for each test()
-        let tempProdName = (Math.random() * 1000).toString(32).substring(1);
-        let prodNameToPassonToTests = (Math.random() * 1000).toString(32).substring(1);
+        // Authenticate and extract bearer token so that the same can be used for every test.
         cy.request('POST', ("/auth/login"), {
             username: Cypress.env("username"),
             password: Cypress.env("password")
@@ -32,30 +28,30 @@ describe('Inventory Management API Tests', () => {
             expect(response.status).to.eq(200);
             Cypress.env("authToken", response.body.token);
             cy.log(response.body.message, "with bearer token: ", Cypress.env("authToken"));
-            cy.request({
-                method: 'POST',
-                url: ("/products"),
-                headers: { Authorization: `Bearer ${Cypress.env("authToken")}` },
-                body: {
-                    name: tempProdName,
-                    price: prodPrice,
-                    productType: Cypress.env("prodType"),
-                    quantity: prodQuantity
-                }
-            }).then((response) => {
-                expect(response.status).to.eq(201);
-                cy.log("sample product created!!");
-                let body = JSON.parse(JSON.stringify(response.body));
-                //Use the below alias product id in respective test specs that need product id.
-                cy.wrap(body.productId).as("prodIdInit"); //prodIdInit passed on as Alias and Env variable for easy usage
-                Cypress.env("envProdId", body.productId);
-                //use prodNameToPassonToTests in respective tests which need unique product name
-                cy.wrap(prodNameToPassonToTests).as("prodNameInit");
-            })
+        });
+    });
+    beforeEach(function () {
+        //generate dynamic data required for each test.
+        prodName = (Math.random() * 1000).toString(32).substring(1);
+        prodPrice = Math.floor(Math.random() * 1000) + 1;
+        prodQuantity = Math.floor(Math.random() * 100) + 1;
+        //Use product name "prodNameToPassonToTests" to pass in respective tests which need unique product name that was NOT already used
+        // "prodNameToPassonToTests" is different to "prodIdInit" created below. "prodIdInit" used in the respective test and might not be of use
+        // when thh test need another fresh product creation.
+        prodNameToPassonToTests = (Math.random() * 1000).toString(32).substring(1);
+        cy.wrap(prodNameToPassonToTests).as("prodNameInit");
+        // Create a new productId using "addProduct" custom command
+        cy.addProduct(Cypress.env("authToken"), prodName, prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeTrue")).then((response) => {
+            expect(response.status).to.eq(201);
+            cy.log("sample product created!!");
+            let body = JSON.parse(JSON.stringify(response.body));
+            //Use the below alias product id in respective test specs that need product id.
+            cy.wrap(body.productId).as("prodIdInit"); //prodIdInit passed on as Alias and Env variable for easy usage
+            Cypress.env("envProdId", body.productId);
         })
     });
     afterEach(() => {
-        cy.log("moving to the next test!");
+        cy.log("PLACEHOLDER for later use, moving to the next test!");
     });
     context('Product Management', () => {
         it('Should add a new product (Happy Path)', {
@@ -64,20 +60,10 @@ describe('Inventory Management API Tests', () => {
                 openMode: 2
             }
         }, () => {
-            //retries added just to avoid any failures for the first time
+            //retries added just to avoid any failures for the first time the first test is invoked.
             cy.get("@prodNameInit").then((prodNameInit) => {
                 cy.log("alias variables from beforeEach hook:" + prodNameInit)
-                cy.request({
-                    method: 'POST',
-                    url: ("/products"),
-                    headers: { Authorization: `Bearer ${Cypress.env("authToken")}` },
-                    body: {
-                        name: prodNameInit,
-                        price: prodPrice,
-                        productType: Cypress.env("prodType"),
-                        quantity: prodQuantity
-                    }
-                }).then((response) => {
+                cy.addProduct(Cypress.env("authToken"), prodNameInit, prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeTrue")).then((response) => {
                     expect(response.status).to.eq(201);
                     productId = response.body.productId;
                     cy.log(`The product id is : ${productId}`);
@@ -86,54 +72,33 @@ describe('Inventory Management API Tests', () => {
             })
         });
         it('Should fail to add a product when API invoked with same product name - duplicate (Unhappy Path)', () => {
-            // First create a product prodNameInit
+            // First create a product with name "prodNameInit"
             cy.get("@prodNameInit").then((prodNameInit) => {
                 cy.log("alias variables from beforeEach hook:" + prodNameInit),
-                    cy.addProduct(Cypress.env("authToken"), prodNameInit, prodPrice, Cypress.env("prodType"), prodQuantity).then((response) => {
+                    cy.addProduct(Cypress.env("authToken"), prodNameInit, prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeTrue")).then((response) => {
                         expect(response.status).to.eq(201);
                         productId = response.body.productId;
                         cy.log(`The product id is : ${productId}`);
                     })
             })
-            // creating product with same name prodNameInit once again
+            // creating product with same name "prodNameInit" once again
             cy.get("@prodNameInit").then((prodNameInit) => {
                 cy.log("alias variables from beforeEach hook:" + prodNameInit)
-                cy.request({
-                    method: 'POST',
-                    url: ("/products"),
-                    headers: { Authorization: `Bearer ${Cypress.env("authToken")}` },
-                    failOnStatusCode: false, //As we know it fails , hence failOnStatusCode used and custom command is not used to create prod id just to keep it clean
-                    body: {
-                        name: prodNameInit,
-                        price: prodPrice,
-                        productType: Cypress.env("prodType"),
-                        quantity: prodQuantity
-                    }
-                }).then((response) => {
+                cy.addProduct(Cypress.env("authToken"), prodNameInit, prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeFalse")).then((response) => {
                     expect(response.status).to.eq(400);
                     cy.log("message: " + response.body.message, "name used: " + response.body.name);
                     cy.log(JSON.stringify(response.body));
                 })
             })
         });
-        it.only('Should fail to add a product when API invoked without mandatory field("name") (Unhappy Path)', () => {
+        it('Should fail to add a product when API invoked without mandatory field("name") (Unhappy Path)', () => {
             cy.get("@prodNameInit").then((prodNameInit) => {
                 cy.log("alias variables from befreEach hooks:" + prodNameInit);
-                cy.request({
-                    method: 'POST',
-                    url: ("/products"),
-                    headers: { Authorization: `Bearer ${Cypress.env("authToken")}` },
-                    failOnStatusCode: false, //As we know it fails , hence failOnStatusCode used and custom command is not used to create prod id just to keep it clean
-                    body: {
-                        // name: prodNameInit,
-                        price: prodPrice,
-                        productType: Cypress.env("prodType"),
-                        quantity: prodQuantity
-                    }
-                }).then((response) => {
-                    expect(response.status).to.eq(400);
-                    cy.log("message: " + response.body.message, "errors: " + response.body.errors.name);
-                })
+                cy.addProduct(Cypress.env("authToken"), "", prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeFalse"))
+                    .then((response) => {
+                        expect(response.status).to.eq(400);
+                        cy.log("message: " + response.body.message, "errors: " + response.body.errors.name);
+                    })
             })
         });
         it('Should fail to add a product when API invoked without authentication header (Unhappy Path)', () => {
@@ -170,7 +135,7 @@ describe('Inventory Management API Tests', () => {
                 expect(response.status).to.eq(401);
             })
         });
-        it('Should list all existing products using /products API (Happy Path)', () => {
+        it('Should list all existing products using "GET/products" API (Happy Path)', () => {
             cy.request({
                 method: 'GET',
                 url: ("/products"),
@@ -187,7 +152,7 @@ describe('Inventory Management API Tests', () => {
                 cy.log(`The first product id in the list is : ${productId}`);
             });
         });
-        it('Should list product details of a specific product via /products/{id} API (Happy Path)', () => {
+        it('Should list product details of a specific product via "GET /products/{id}" API (Happy Path)', () => {
             // Uncomment below line and use the same fixtures var test data OR continue with dynamic test data
             // cy.log(globalThis.data.productIds[0])
             cy.get("@prodIdInit").then((tempProdId) => {
@@ -249,7 +214,7 @@ describe('Inventory Management API Tests', () => {
             //The reason to use product ids gererated by below methods is just to demonstrate all possible ways.
             // a).dynamic data from beforeEach hook,b).fixtures and c).custom commands
             let prodNameTobeDeleted = (Math.random() * 1000).toString(32).substring(1);
-            cy.addProduct(Cypress.env("authToken"), prodNameTobeDeleted, prodPrice, Cypress.env("prodType"), prodQuantity).then((response) => {
+            cy.addProduct(Cypress.env("authToken"), prodNameTobeDeleted, prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeTrue")).then((response) => {
                 expect(response.status).to.eq(201);
                 let body = JSON.parse(JSON.stringify(response.body));
                 const prodId = body.productId;
@@ -266,7 +231,7 @@ describe('Inventory Management API Tests', () => {
         });
         it('Should delete a product (with the product id created by prod id from beforeEach hook)', () => {
             let prodNameTobeDeleted = (Math.random() * 1000).toString(32).substring(1);
-            cy.addProduct(Cypress.env("authToken"), prodNameTobeDeleted, prodPrice, Cypress.env("prodType"), prodQuantity).then((response) => {
+            cy.addProduct(Cypress.env("authToken"), prodNameTobeDeleted, prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeTrue")).then((response) => {
                 expect(response.status).to.eq(201);
                 let body = JSON.parse(JSON.stringify(response.body));
                 const prodId = body.productId;
@@ -283,6 +248,7 @@ describe('Inventory Management API Tests', () => {
         });
     });
     const deleteProdUnhappyPathInputParams = [
+        { authToken: Cypress.env("emptyAuthToken"), price: prodPrice,tempProdId:Cypress.env("prodIDForProductThatWasAlreadyDeleted") }, //  product delete  with empty authToken
         { authToken: Cypress.env("emptyAuthToken"), price: prodPrice }, //  product delete  with empty authToken
         { authToken: Cypress.env("invalidAuthToken"), price: prodPrice }, //  product delete  with invalid authToken
         { authToken: Cypress.env("expiredAuthToken"), price: prodPrice } //  product delete  with expiredAuthToken authToken
@@ -290,13 +256,19 @@ describe('Inventory Management API Tests', () => {
     deleteProdUnhappyPathInputParams.forEach((inputParams) => {
         it(`Should delete a product using(with the product id created by prod id from beforeEach hook): ${inputParams.authToken}`, () => {
             let prodNameTobeDeleted = (Math.random() * 1000).toString(32).substring(1);
-            cy.addProduct(Cypress.env("authToken"), prodNameTobeDeleted, prodPrice, Cypress.env("prodType"), prodQuantity).then((response) => {
+            cy.addProduct(Cypress.env("authToken"), prodNameTobeDeleted, prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeTrue")).then((response) => {
                 expect(response.status).to.eq(201);
-                let body = JSON.parse(JSON.stringify(response.body));
-                const prodId = body.productId;
+                let body = JSON.parse(JSON.stringify(response.body)); //print the response data
+                if (!inputParams.tempProdId) {
+                    //Use the dynamically generated prodId if there is no prodId prvided
+                    Cypress.env("prodIdToDelete", body.productId);
+                } else {
+                    Cypress.env("prodIdToDelete", Cypress.env("prodIDForProductThatWasAlreadyDeleted"));
+                    // Use the "deleteProdUnhappyPathInputParams.tempProdId" if there is a prodId.
+                }
                 cy.request({
                     method: 'DELETE',
-                    url: (`/products/${prodId}`),
+                    url: (`/products/${Cypress.env("prodIdToDelete")}`),
                     failOnStatusCode: false,
                     headers: { Authorization: `Bearer ${inputParams.authToken}` }
                 }).then((response) => {
@@ -341,14 +313,14 @@ describe('Inventory Management API Tests', () => {
         it('Should query stock levels for newly created product', () => {
             //First create a product using /products API
             let prodNameToCheckStock = (Math.random() * 1000).toString(32).substring(1);
-            cy.addProduct(Cypress.env("authToken"), prodNameToCheckStock, prodPrice, Cypress.env("prodType"), prodQuantity).then((response) => {
+            cy.addProduct(Cypress.env("authToken"), prodNameToCheckStock, prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeTrue")).then((response) => {
                 cy.log(JSON.stringify(response.body));
                 expect(response.status).to.eq(201);
                 let body = JSON.parse(JSON.stringify(response.body));
                 //Find the productId of the same product from the JSON response
                 let prodId = body.productId;
                 const orderType = Cypress.env("orderTypeBuy");
-                cy.buyOrder(Cypress.env("authToken"), orderType, prodId, prodQuantity).then((response) => {
+                cy.buyOrder(Cypress.env("authToken"), orderType, prodId, prodQuantity, Cypress.env("failOnStatusCodeTrue")).then((response) => {
                     let prodId = response.body.productId;
                     // let orderId = response.body.orderId;
                     cy.request({
@@ -370,8 +342,7 @@ describe('Inventory Management API Tests', () => {
         buyOrderInputParams.forEach((inputParams) => {
             it(`Should buy a product [buy order]: ${inputParams.orderType}, ${inputParams.productId}, ${inputParams.quantity}`, () => {
                 //Can be enhanced to use dynamic data as shown above, not touching now due to time constraint:)
-                // cy.buyOrder(Cypress.env("authToken"), Cypress.env("orderTypeBuy"), globalThis.data.productIds[1], 2).then((response) => {
-                cy.buyOrder(Cypress.env("authToken"), inputParams.orderType, inputParams.productId, inputParams.quantity).then((response) => {
+                cy.buyOrder(Cypress.env("authToken"), inputParams.orderType, inputParams.productId, inputParams.quantity, Cypress.env("failOnStatusCodeTrue")).then((response) => {
                     expect(response.status).to.eq(201);
                     cy.log("Successfully bought a prod and the result is: " + response.body.success);
                     // TODO: DEFECT - NOT testing the logic to verify stock update as there is a defect in the API , where the stock updates are not working correctly
@@ -419,8 +390,7 @@ describe('Inventory Management API Tests', () => {
         sellOrderInputParams.forEach((inputParams) => {
             it(`Should sell a product [sell order]: ${inputParams.orderType},${inputParams.productId},${inputParams.quantity}`, () => {
                 //Can be enhanced to use dynamic data as shown above, not touching now due to time constraint:)
-                // cy.buyOrder(Cypress.env("authToken"), Cypress.env("orderTypeBuy"), globalThis.data.productIds[1], 2).then((response) => {
-                cy.buyOrder(Cypress.env("authToken"), inputParams.orderType, inputParams.productId, inputParams.quantity).then((response) => {
+                cy.buyOrder(Cypress.env("authToken"), inputParams.orderType, inputParams.productId, inputParams.quantity, Cypress.env("failOnStatusCodeTrue")).then((response) => {
                     expect(response.status).to.eq(201);
                     cy.log("Successfully bought a prod and the result is: " + response.body.success);
                     // TODO: DEFECT - NOT testing the logic to verify stock update as there is a defect in the API , where the stock updates are not working correctly
@@ -429,7 +399,9 @@ describe('Inventory Management API Tests', () => {
             });
         });
         const sellOrderUnhappyPathInputParams = [
-            { orderType: Cypress.env("orderTypeSell"), productId: Cypress.env("prodIdWithStockZero"), quantity: Cypress.env("nonZeroPosNum") }, // product sell order with stock set to ZERO
+            { orderType: Cypress.env("orderTypeSell"), productId: Cypress.env("prodIdWithStockZero"), quantity: Cypress.env("nonZeroPosNum") },
+            // product sell order with product that has stock/quantity set to ZERO.
+            // TODO:prodIdWithStockZero can be dynamically generated using 'GET /products' to find a productId that has "quantity": 0;
             { orderType: Cypress.env("orderTypeSell"), productId: Cypress.env("prodIdWithStockZero"), quantity: Cypress.env("negativeNum") }, // product sell order with negative quantity num
             { orderType: Cypress.env("orderTypeSell"), productId: Cypress.env("prodIdWithStockZero"), quantity: Cypress.env("inavlidNum") }, // product sell order with inavlidNum quantity number (ex:X)
             { orderType: Cypress.env("orderTypeSell"), productId: Cypress.env("invalidProdId"), quantity: Cypress.env("nonZeroPosNum") }, // API invoked with invalidProdId
@@ -440,7 +412,7 @@ describe('Inventory Management API Tests', () => {
         ];
         sellOrderUnhappyPathInputParams.forEach((inputParams) => {
             it(`Should fail to sell as the request body params are set to fail: ${inputParams.orderType},${inputParams.productId} and ${inputParams.quantity}`, () => {
-                cy.log(inputParams.orderType)
+                cy.log(inputParams.orderType,inputParams.productId,inputParams.quantity)
                 cy.request({
                     method: 'POST',
                     url: `/orders`,
@@ -452,12 +424,18 @@ describe('Inventory Management API Tests', () => {
                         quantity: inputParams.quantity
                     }
                 }).then((response) => {
+                 //TODO:Sell Order API can be converted to customesed command but ot appears there is an issue
+                // Cypress.env("tempOrderTypeSell", inputParams.orderType);
+                // Cypress.env("tempProductId", inputParams.productId);
+                // Cypress.env("tempQuantity", inputParams.quantity);
+                //  cy.sellOrder(Cypress.env("tempOrderTypeSell"),Cypress.env("tempProductId"),Cypress.env("tempQuantity"),Cypress.env("failOnStatusCodeFalse")).then((response) => {
+                //  cy.sellOrder(Cypress.env("orderTypeSell"), inputParams.productId, inputParams.quantity, Cypress.env("failOnStatusCodeFalse")).then((response) => {
                     cy.log(JSON.stringify(response.body));
-                    cy.log(response.body.message, response.body.success, response.body.orderType);
-                    expect(response.status).to.not.eq(201);
-                    cy.log("Can not sell because: " + response.message, "and statusCode: " + response.body.status)
-                })
-            });
-        })
-    });
+                cy.log(response.body.message, response.body.success, response.body.orderType);
+                expect(response.status).to.not.eq(201);
+                cy.log("Can not sell because: " + response.message, "and statusCode: " + response.body.status)
+            })
+        });
+    })
+});
 });
