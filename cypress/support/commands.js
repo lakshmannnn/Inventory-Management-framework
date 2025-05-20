@@ -32,7 +32,7 @@ Cypress.Commands.add('addProduct', (authToken, prodName, prodPrice, prodType, pr
         }
     })
 })
-Cypress.Commands.add('buyOrderwithNofailOnStatusCode', (authToken, orderType, productId, prodQuantity) => {
+Cypress.Commands.add('buyOrder', (authToken, orderType, productId, prodQuantity) => {
     cy.request({
         method: 'POST',
         url: `/orders`,
@@ -58,20 +58,41 @@ Cypress.Commands.add('buyOrder', (authToken, orderType, productId, prodQuantity)
         }
     })
 });
-Cypress.Commands.add('sellOrder', (authToken, orderType, productId, prodQuantity) => {
+Cypress.Commands.add('sellOrder', (orderType, productId, prodQuantity) => {
     const failOnStatusCode = Cypress.env("failOnStatusCode");
-    cy.request({
-        method: 'POST',
-        url: `/orders`,
-        headers: { Authorization: `Bearer ${authToken}` },
-        failOnStatusCode: failOnStatusCode,
-        body: {
-            orderType: orderType,
-            productId: productId,
-            quantity: prodQuantity
-        }
-    })
+    cy.log(prodQuantity),
+        cy.request({
+            method: 'POST',
+            url: `/orders`,
+            headers: { Authorization: `Bearer ${Cypress.env("authToken")}` },
+            failOnStatusCode: failOnStatusCode,
+            body: {
+                orderType: "sell",
+                productId: "${productId}",
+                quantity: "${prodQuantity}"
+
+            }
+        })
 });
+
+
+// Cypress.Commands.add('sellOrder', (authToken, orderType, productId, prodQuantity) => {
+//     const failOnStatusCode = Cypress.env("failOnStatusCode");
+//     //below code incase you want to use prodIdInit from beforeEach hook
+//     cy.get("@prodIdInit").then((prodIdInit) => {
+//         cy.request({
+//             method: 'POST',
+//             url: `/orders`,
+//             headers: { Authorization: `Bearer ${authToken}` },
+//             failOnStatusCode: failOnStatusCode,
+//             body: {
+//                 orderType: orderType,
+//                 productId: prodIdInit,
+//                 quantity: prodQuantity
+//             }
+//         })
+//     })
+// });
 Cypress.Commands.add("setGlobalVar", key => {
     Cypress.env(key);
 });
