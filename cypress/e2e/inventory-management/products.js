@@ -438,7 +438,6 @@ describe('Inventory Management API Tests', () => {
                     cy.log("Can not sell because: " + response.message, "and statusCode: " + response.body.status)
                 })
             });
-
         })
         it('500 error simulation - Should fail because of 500 error - (simulation unhappy Path)', () => {
             cy.request({
