@@ -250,7 +250,7 @@ describe('Inventory Management API Tests', () => {
         });
     });
     const deleteProdUnhappyPathInputParams = [
-        { authToken: Cypress.env("emptyAuthToken"), price: prodPrice,tempProdId:Cypress.env("prodIDForProductThatWasAlreadyDeleted") }, //  product delete  with empty authToken
+        { authToken: Cypress.env("emptyAuthToken"), price: prodPrice, tempProdId: Cypress.env("prodIDForProductThatWasAlreadyDeleted") }, //  product delete  with empty authToken
         { authToken: Cypress.env("emptyAuthToken"), price: prodPrice }, //  product delete  with empty authToken
         { authToken: Cypress.env("invalidAuthToken"), price: prodPrice }, //  product delete  with invalid authToken
         { authToken: Cypress.env("expiredAuthToken"), price: prodPrice } //  product delete  with expiredAuthToken authToken
@@ -414,7 +414,7 @@ describe('Inventory Management API Tests', () => {
         ];
         sellOrderUnhappyPathInputParams.forEach((inputParams) => {
             it(`Should fail to sell as the request body params are set to fail: ${inputParams.orderType},${inputParams.productId} and ${inputParams.quantity}`, () => {
-                cy.log(inputParams.orderType,inputParams.productId,inputParams.quantity)
+                cy.log(inputParams.orderType, inputParams.productId, inputParams.quantity)
                 cy.request({
                     method: 'POST',
                     url: `/orders`,
@@ -426,18 +426,31 @@ describe('Inventory Management API Tests', () => {
                         quantity: inputParams.quantity
                     }
                 }).then((response) => {
-                 //TODO:Sell Order API can be converted to customesed command but ot appears there is an issue
-                // Cypress.env("tempOrderTypeSell", inputParams.orderType);
-                // Cypress.env("tempProductId", inputParams.productId);
-                // Cypress.env("tempQuantity", inputParams.quantity);
-                //  cy.sellOrder(Cypress.env("tempOrderTypeSell"),Cypress.env("tempProductId"),Cypress.env("tempQuantity"),Cypress.env("failOnStatusCodeFalse")).then((response) => {
-                //  cy.sellOrder(Cypress.env("orderTypeSell"), inputParams.productId, inputParams.quantity, Cypress.env("failOnStatusCodeFalse")).then((response) => {
+                    //TODO:Sell Order API can be converted to customesed command but ot appears there is an issue
+                    // Cypress.env("tempOrderTypeSell", inputParams.orderType);
+                    // Cypress.env("tempProductId", inputParams.productId);
+                    // Cypress.env("tempQuantity", inputParams.quantity);
+                    //  cy.sellOrder(Cypress.env("tempOrderTypeSell"),Cypress.env("tempProductId"),Cypress.env("tempQuantity"),Cypress.env("failOnStatusCodeFalse")).then((response) => {
+                    //  cy.sellOrder(Cypress.env("orderTypeSell"), inputParams.productId, inputParams.quantity, Cypress.env("failOnStatusCodeFalse")).then((response) => {
                     cy.log(JSON.stringify(response.body));
-                cy.log(response.body.message, response.body.success, response.body.orderType);
-                expect(response.status).to.not.eq(201);
-                cy.log("Can not sell because: " + response.message, "and statusCode: " + response.body.status)
-            })
-        });
-    })
-});
+                    cy.log(response.body.message, response.body.success, response.body.orderType);
+                    expect(response.status).to.not.eq(201);
+                    cy.log("Can not sell because: " + response.message, "and statusCode: " + response.body.status)
+                })
+            });
+
+        })
+        it('500 error simulation - Should fail because of 500 error - (simulation unhappy Path)', () => {
+            cy.request({
+                method: "POST",
+                url: "/products",
+                failOnStatusCode: false,
+            }).then((response) => {
+                response.status = 500;
+                response.body = { error: "Internal Server Error" };
+                expect(response.status).to.eq(500);
+                cy.log("Mocked 500 response: " + JSON.stringify(response.body));
+            });
+        })
+    });
 });
