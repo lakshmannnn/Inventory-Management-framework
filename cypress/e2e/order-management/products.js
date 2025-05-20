@@ -31,7 +31,7 @@ describe('Inventory Management API Tests', () => {
         });
     });
     beforeEach(function () {
-        //generate dynamic data required for each test.
+        //generate dynamic test data required for each test.
         prodName = (Math.random() * 1000).toString(32).substring(1);
         prodPrice = Math.floor(Math.random() * 1000) + 1;
         prodQuantity = Math.floor(Math.random() * 100) + 1;
@@ -81,11 +81,11 @@ describe('Inventory Management API Tests', () => {
                         cy.log(`The product id is : ${productId}`);
                     })
             })
-            // creating product with same name "prodNameInit" once again
+            // creating second product with same name "prodNameInit" once again
             cy.get("@prodNameInit").then((prodNameInit) => {
                 cy.log("alias variables from beforeEach hook:" + prodNameInit)
                 cy.addProduct(Cypress.env("authToken"), prodNameInit, prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeFalse")).then((response) => {
-                    expect(response.status).to.eq(400);
+                    expect(response.status).to.eq(400); //as expected , it will fail because of duplicate name.
                     cy.log("message: " + response.body.message, "name used: " + response.body.name);
                     cy.log(JSON.stringify(response.body));
                 })
@@ -96,7 +96,7 @@ describe('Inventory Management API Tests', () => {
                 cy.log("alias variables from befreEach hooks:" + prodNameInit);
                 cy.addProduct(Cypress.env("authToken"), "", prodPrice, Cypress.env("prodType"), prodQuantity, Cypress.env("failOnStatusCodeFalse"))
                     .then((response) => {
-                        expect(response.status).to.eq(400);
+                        expect(response.status).to.eq(400);// fails as "name":""
                         cy.log("message: " + response.body.message, "errors: " + response.body.errors.name);
                     })
             })
@@ -115,11 +115,13 @@ describe('Inventory Management API Tests', () => {
                             quantity: prodQuantity
                         }
                     }).then((response) => {
-                        expect(response.status).to.eq(401);
+                        expect(response.status).to.eq(401); //fails authorization as no header in the body
+                        cy.log("message: " + response.body.message, "errors: " + response.body.errors.name);
                     })
             })
         });
         it('Should fail to add a product when API invoked with expired bearer token (Unhappy Path)', () => {
+            //TODO:Could not use the custom commmand as the request body do not have a common patter, can enhance later
             cy.request({
                 method: 'POST',
                 url: ("/products"),
