@@ -12,7 +12,7 @@ pipeline {
 		stage('trigger tests') {
 
                     steps {
-                        bat 'npm run triggerAllTests-headed-chrome-CypressCloud'
+                        bat 'npm run triggerAllTests-CypressCloud'
                     }
                 }
         }
