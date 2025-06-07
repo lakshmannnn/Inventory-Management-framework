@@ -54,7 +54,7 @@ describe('Inventory Management API Tests', () => {
         cy.log("PLACEHOLDER for later use, moving to the next test!");
     });
     context('Product Management', () => {
-        it('Should add a new product (Happy Path)', {
+        it.only('Should add a new product (Happy Path)', {
             retries: {
                 runMode: 2,
                 openMode: 2

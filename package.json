@@ -10,6 +10,8 @@
     "triggerAllTests-headless": "npx cypress run",
     "triggerAllTests-headed": "npx cypress run --headed",
     "triggerAllTests-chrome": "npx cypress run --browser chrome",
+    "triggerAllTests-headed-chrome": "npx cypress open --browser chrome",
+    "triggerAllTests-headed-chrome-CypressCloud": "npx cypress open --browser chrome --record --key 41fe056a-e00f-484e-aa18-98aae73fef8b",
     "triggerSpecificTestsHeadless": "npx cypress run --spec cypress/.."
   },
   "author": "lakshman",
