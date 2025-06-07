@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "triggerAllTestsHeadless": "npx cypress run"
+    "triggerAllTestsHeadless": "npx cypress run",
+    "triggerSpecificTestsHeadless": "npx cypress run"
   },
   "author": "lakshman",
   "license": "ISC",
