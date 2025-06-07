@@ -7,8 +7,10 @@
     "test": "test"
   },
   "scripts": {
-    "triggerAllTestsHeadless": "npx cypress run",
-    "triggerSpecificTestsHeadless": "npx cypress run"
+    "triggerAllTests-headless": "npx cypress run",
+    "triggerAllTests-headed": "npx cypress run --headed",
+    "triggerAllTests-chrome": "npx cypress run --browser chrome",
+    "triggerSpecificTestsHeadless": "npx cypress run --spec cypress/.."
   },
   "author": "lakshman",
   "license": "ISC",
