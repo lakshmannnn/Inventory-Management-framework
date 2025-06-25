@@ -1,12 +1,16 @@
 const { defineConfig } = require("cypress");
+const cucumber = require('cypress-cucumber-preprocessor').default;
 
 module.exports = defineConfig({
   projectId: 'qojzkj',
   e2e: {
     setupNodeEvents(on, config) {
-      // implement node event listeners here
+      // implement node event listeners
+      on('file:preprocessor', cucumber())
     },
     specPattern: "cypress/e2e/**/*.{js,jsx,ts,tsx,feature}",
+    //  specPattern: "cypress/e2e/webdriver-uni/features/**/*.feature",
+
     baseUrl: "https://apiforshopsinventorymanagementsystem-qnkc.onrender.com",
     env: {
       username: "user01",
@@ -32,7 +36,8 @@ module.exports = defineConfig({
       decimalValue: 1.9,
       invalidOrderType: "neither Buy nor Sell",
       emptyPrice: ""
-    }
+    },
+    experimentalStudio: true
   },
 });
 
