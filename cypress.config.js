@@ -11,7 +11,8 @@ module.exports = defineConfig({
     specPattern: "cypress/e2e/**/*.{js,jsx,ts,tsx,feature}",
     //  specPattern: "cypress/e2e/webdriver-uni/features/**/*.feature",
 
-    baseUrl: "https://apiforshopsinventorymanagementsystem-qnkc.onrender.com",
+    baseUrl: "https://rahulshettyacademy.com/loginpagePractise/",
+    // baseUrl: "https://apiforshopsinventorymanagementsystem-qnkc.onrender.com",
     env: {
       username: "user01",
       password: "secpassword*",
@@ -37,7 +38,14 @@ module.exports = defineConfig({
       invalidOrderType: "neither Buy nor Sell",
       emptyPrice: ""
     },
-    experimentalStudio: true
+    experimentalStudio: true,
+    reporter: 'mochawesome',
+    reporterOptions: {
+      reportDir: 'cypress/reports',
+      overwrite: false,
+      html: true,
+      json: true
+    }
   },
 });
 

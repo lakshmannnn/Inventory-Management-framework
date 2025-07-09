@@ -116,5 +116,46 @@ Cypress.Commands.add("setGlobalVar", key => {
     Cypress.env(key);
 });
 
+// What Cypress.log() Does?
+// Unlike cy.log(), which just prints a message to the Command Log, Cypress.log() gives you full control over:
+// - The name of the command
+// - The message shown in the Command Log
+// - The consoleProps (extra info shown in DevTools when clicked)
+
+// 🛠️ Example: Custom Command with Cypress.log()
+// Let’s say you want to create a custom command that sets a value in sessionStorage and logs it clearly
+
+Cypress.Commands.add('setSessionStorage', (key, value) => {
+  Cypress.log({
+    name: 'setSessionStorage',
+    message: `${key} = ${value}`,
+    consoleProps: () => {
+      return {
+        Key: key,
+        Value: value,
+        Description: 'Sets a key-value pair in sessionStorage'
+      };
+    }
+  });
+
+  cy.window().then((win) => {
+    win.sessionStorage.setItem(key, value);
+  });
+});
+
+Cypress.Commands.add('demoCypressDotLog', (key, value) => {
+  Cypress.log({
+    name: 'demoCypressDotLog',
+    message: `can you see this magic?`,
+    consoleProps: () => {
+      return {
+        Key: key,
+        Value: value,
+        Description: 'Sets a key-value pair in sessionStorage'
+      };
+    }
+  });
+});
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... }))
+
