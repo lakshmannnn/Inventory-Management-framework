@@ -8,11 +8,15 @@ module.exports = defineConfig({
       // implement node event listeners
       on('file:preprocessor', cucumber())
     },
+    // The setupNodeEvents function in Cypress is a powerful hook that lets you tap into the
+    // Node.js process that runs outside the browser. It’s used to configure plugins, register
+    // custom tasks, and modify Cypress behavior during the test lifecycle.
+
     specPattern: "cypress/e2e/**/*.{js,jsx,ts,tsx,feature}",
     //  specPattern: "cypress/e2e/webdriver-uni/features/**/*.feature",
 
-    baseUrl: "https://rahulshettyacademy.com/loginpagePractise/",
-    // baseUrl: "https://apiforshopsinventorymanagementsystem-qnkc.onrender.com",
+    // baseUrl: "https://rahulshettyacademy.com/loginpagePractise/",
+    baseUrl: "https://apiforshopsinventorymanagementsystem-qnkc.onrender.com",
     env: {
       username: "user01",
       password: "secpassword*",
