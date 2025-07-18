@@ -1,18 +1,25 @@
 const { defineConfig } = require("cypress");
-const createEsbuildPlugin = require("@bahmutov/cypress-esbuild-preprocessor"); // <-- FIXED
-const cucumber = require("@badeball/cypress-cucumber-preprocessor").addCucumberPreprocessorPlugin;
+const cucumber = require('cypress-cucumber-preprocessor').default;
 
 module.exports = defineConfig({
   projectId: 'qojzkj',
   e2e: {
-    async setupNodeEvents(on, config) {
-      await cucumber(on, config);
-      on("file:preprocessor", createEsbuildPlugin());
-      require('@cypress/grep/src/plugin')(on, config);
+    setupNodeEvents(on, config) {
+      // implement node event listeners
+      on('file:preprocessor', cucumber());
+      require('@cypress/grep/src/plugin')(config);
       return config;
     },
+    // The setupNodeEvents function in Cypress is a powerful hook that lets you tap into the
+    // Node.js process that runs outside the browser. It’s used to configure plugins, register
+    // custom tasks, and modify Cypress behavior during the test lifecycle.
+
     specPattern: "cypress/e2e/**/*.{js,jsx,ts,tsx,feature}",
+    //  specPattern: "cypress/e2e/webdriver-uni/features/**/*.feature",
+
+    // baseUrl: "https://rahulshettyacademy.com/loginpagePractise/",
     baseUrl: "https://apiforshopsinventorymanagementsystem-qnkc.onrender.com",
+
     env: {
       grepFilterSpecs: true,
       grepOmitFiltered: true,
@@ -31,7 +38,7 @@ module.exports = defineConfig({
       orderTypeSell: "sell",
       failOnStatusCodeFalse: false,
       failOnStatusCodeTrue: true,
-      maxNumberOfStock: 1000000009,
+      maxNumberOfStock: 1000000009, //At the min validProdId is set with stock 1000000001
       nonZeroPosNum: 3,
       invalidNumber: "X",
       negativeNum: -5,
@@ -40,7 +47,7 @@ module.exports = defineConfig({
       invalidOrderType: "neither Buy nor Sell",
       emptyPrice: ""
     },
-    video: false,
+    video:false,
     chromeWebSecurity: false,
     experimentalStudio: true,
     reporter: 'mochawesome',
@@ -52,3 +59,4 @@ module.exports = defineConfig({
     }
   },
 });
+

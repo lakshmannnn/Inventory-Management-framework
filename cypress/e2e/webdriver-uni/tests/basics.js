@@ -1,6 +1,6 @@
 describe('Basic practise tests', () => {
 
-    it("demo Cypress.log() and set the session storage", () => {
+    it("demo Cypress.log() and set the session storage", {tags:['tagId3','@smoke']}, () => {
         //demo Cypress.log() used in setSessionStorage custom command
         cy.visit("https://www.webdriveruniversity.com/Login-Portal/index.html");
         cy.get('#text').type("webdriver");
@@ -10,7 +10,7 @@ describe('Basic practise tests', () => {
         cy.setSessionStorage("Key", "987654321");
     });
 
-    it("set the session storage key value with the token extracted using /auth/login API",{tags:['@smoke','@regression']}, () => {
+    it("set the session storage key value with the token extracted using /auth/login API",{tags:['@smoke','@regression','tagId2']}, () => {
         // Authenticate and extract bearer token so that the same can be used for every test.
         cy.request('POST', ("/auth/login"), {
             username: Cypress.env("username"),
