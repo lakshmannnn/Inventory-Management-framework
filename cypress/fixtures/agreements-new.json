@@ -1,0 +1,29 @@
+{
+    "agreementArray": [
+        {
+            "heading": "Gigabit Capable Connectivity DPS",
+            "agreementID": "RM6095",
+            "startDate": " 24/09/2019"
+        },
+        {
+            "heading": "Quality Assurance and Testing for IT Systems 2",
+            "agreementID": "RM6148",
+            "startDate": " 02/12/2019"
+        },
+        {
+            "heading": "Artificial Intelligence (AI)",
+            "agreementID": "RM6200",
+            "startDate": " 03/09/2020"
+        },
+        {
+            "heading": "Space-Enabled and Geospatial Services",
+            "agreementID": "RM6235",
+            "startDate": " 11/10/2021"
+        },
+        {
+            "heading": "Spark DPS",
+            "agreementID": "RM6094",
+            "startDate": " 16/04/2019"
+        }
+    ]
+}
