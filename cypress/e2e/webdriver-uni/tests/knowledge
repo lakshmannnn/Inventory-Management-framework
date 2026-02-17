@@ -1,0 +1,14 @@
+Cucumber parameter types
+{word}
+Description: Matches a single word (a sequence of non-space characters).
+{string}
+Description: Matches a sequence of characters enclosed in quotes (single or double quotes).
+{int}
+Description: Matches an integer (whole number, positive or negative).
+{float}:
+Matches a floating-point number (e.g., 3.14, -0.5).
+{date}, {datetime}, {time}:
+Matches date or time formats (implementation-dependent, often ISO formats
+
+
+

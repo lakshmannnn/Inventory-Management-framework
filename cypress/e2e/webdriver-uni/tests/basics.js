@@ -31,7 +31,7 @@ describe('Basic practise tests', () => {
         cy.setSessionStorage("Key", "987654321");
     })
 
-    it.only('Accessibility - "Axe Dev tools" - should have no detectable a11y violations',{tags:['@smoke','@regression','tagId1']}, () => {
+    it('Accessibility - "Axe Dev tools" - should have no detectable a11y violations',{tags:['@1smoke','@regression','tagId1']}, () => {
     // cy.visit('https://rahulshettyacademy.com/loginpagePractise/');
     cy.origin('https://rahulshettyacademy.com/loginpagePractise/');
     cy.injectAxe();//Injects axe-core into the page, use After cy.visit(

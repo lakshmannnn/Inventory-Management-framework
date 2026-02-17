@@ -1,16 +1,20 @@
 const { defineConfig } = require("cypress");
-const createEsbuildPlugin = require("@bahmutov/cypress-esbuild-preprocessor"); // <-- FIXED
+const createEsbuildPlugin = require("@bahmutov/cypress-esbuild-preprocessor");
 const cucumber = require("@badeball/cypress-cucumber-preprocessor").addCucumberPreprocessorPlugin;
 
 module.exports = defineConfig({
   projectId: 'qojzkj',
   e2e: {
     async setupNodeEvents(on, config) {
+
       await cucumber(on, config);
       on("file:preprocessor", createEsbuildPlugin());
       require('@cypress/grep/src/plugin')(on, config);
       return config;
     },
+  //   cucumber: {
+  //   stepDefinitions: "cypress/support/step_definitions/**/*.js"
+  // },
     specPattern: "cypress/e2e/**/*.{js,jsx,ts,tsx,feature}",
     baseUrl: "https://apiforshopsinventorymanagementsystem-qnkc.onrender.com",
     env: {

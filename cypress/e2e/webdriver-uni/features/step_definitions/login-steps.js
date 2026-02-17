@@ -1,4 +1,7 @@
-import { Before, Given, When, And, Then } from "cypress-cucumber-preprocessor/steps";
+// import { Before, Given, When, And, Then } from "cypress-cucumber-preprocessor/steps";
+import { Before, Given, When, And, Then } from "@badeball/cypress-cucumber-preprocessor/steps";
+
+
 let stub;
 Before(()=>{
     cy.log("executing before hook!");

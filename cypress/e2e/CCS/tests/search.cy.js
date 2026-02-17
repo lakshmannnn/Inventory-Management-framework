@@ -12,8 +12,9 @@ describe('This suite is to test the search and filter capability', () => {
         cy.get('#PCR2015', { timeout: 1000 }).scrollIntoView();
         // cy.get('[type="checkbox"]').eq(22).click();
         cy.get('[type="checkbox"]').check('PCR2015');
-        // cy.get('#Dynamic+Purchasing+System', { timeout: 1000 }).scrollIntoView();
+        cy.get(`label[for='Dynamic+Purchasing+System']`, { timeout: 1000 }).scrollIntoView();
         cy.get('[type="checkbox"]').check('Dynamic+Purchasing+System');
+        cy.get(`label[for='Dynamic+Purchasing+System']`, { timeout: 1000 }).scrollIntoView();
         cy.get('[type="checkbox"]').check('Technology');
         // var url = cy.url();
         // cy.log(url);
@@ -22,7 +23,7 @@ describe('This suite is to test the search and filter capability', () => {
         cy.get('.govuk-heading-m > span').should('contain', '5 agreements found');
         cy.xpath("//a[contains(text(),'Gigabit Capable Connectivity DPS')][1]").should('exist');
         cy.get('div[class="hideWithoutJS"] li:nth-child(1) h3:nth-child(1) a').should('contain', 'Gigabit Capable Connectivity DPS')
-        //TODO: Order of the agreements displayed in the UI is not always constant, hence the below assertion may fail
+        //TODO: Its observed that the 'Order of the agreements' displayed in the UI is not always constant, hence the below assertion may fail
         // cy.fixture('agreements.json').then(agreements => {
         //     globalThis.agreements = agreements;
         // for (let i = 1; i <= 5; i++) {
@@ -77,18 +78,18 @@ describe('This suite is to test the search and filter capability', () => {
                         })
                     })
                 cy.visit(AGREEMENTS_URL);
+                // Ideally cy.go() to be used instead of cy.visit(). However, the cy.go() is timing out, this needs some attention at later stage.
                 // cy.go('back');
                 // cy.go(-1, { timeout: 120000 });
-                //  cy.visit(Cypress.env("urlWithFilters"));
             }
-            // *** Singular values
+            // *** below code is for verifying Key Facts of a specific 'Searched agreement'just for illustration purpose on above logic
             // cy.get(`div.hideWithoutJS li:nth-child(1) h3:nth-child(1) a`).click();
             // cy.get(`div[class='govuk-grid-column-one-third'] div:nth-child(2) h2:nth-child(1)`).should('exist');
             // cy.get('.apollo-list--definition__value').eq(1).should('contain', " RM6095");
             // cy.get('.apollo-list--definition__value').eq(2).should('contain', " 24/09/2019");
             // cy.get('.apollo-list--definition__value').eq(5).should('contain', " PCR2015");
             // cy.get('.apollo-list--definition__value').eq(6).should('contain', " Dynamic Purchasing System");
-            // ***for loop***
+
         });
     });
 })

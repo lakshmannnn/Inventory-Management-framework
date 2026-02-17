@@ -12,7 +12,11 @@
     "triggerAllTests-chrome": "npx cypress run --browser chrome",
     "triggerAllTests-headed-chrome": "npx cypress open --browser chrome",
     "triggerAllTests-CypressCloud": "npx cypress run --spec cypress/e2e/inventory-management/products.js --record --key 41fe056a-e00f-484e-aa18-98aae73fef8b",
-    "triggerSpecificTestsHeadless": "npx cypress run --spec cypress/.."
+    "triggerSpecificTestsHeadless": "npx cypress run --spec cypress/..",
+    "trigger-parallel-execution": "npx cypress run --record --key 41fe056a-e00f-484e-aa18-98aae73fef8b --parallel  --ci-build-id inventory-local-$(date +%s)",
+    "test:pact": "mocha cypress/e2e/pact/inventoryManagementAPI.pact.test.js --timeout 10000",
+    "test:pact:verify": "node cypress/pact/pact-verification.js",
+    "test:pact:publish": "pact-broker publish cypress/pact/pacts --consumer-app-version=$(git rev-parse --short HEAD)"
   },
   "author": "lakshman",
   "license": "ISC",
@@ -25,6 +29,7 @@
     "babel-plugin-istanbul": "^7.0.0",
     "cypress": "^14.5.2",
     "cypress-axe": "^1.6.0",
+    "cypress-cucumber-tagging": "^1.0.3",
     "cypress-xpath": "^2.0.1",
     "istanbul-lib-coverage": "^3.2.2",
     "mochawesome": "^7.1.3",
@@ -34,9 +39,5 @@
   },
   "dependencies": {
     "npx": "^10.2.2"
-  },
-  "cypress-cucumber-preprocessor": {
-    "nonGlobalStepDefinitions": true,
-    "stepDefinitions": "cypress/support/step_definitions"
   }
 }
